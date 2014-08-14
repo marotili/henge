@@ -1,0 +1,161 @@
+* Main
+** Halo
+   for rendering purposes
+** Hsys
+   game logic etc.
+** Games 
+   the games
+
+** Libraries
+- OpenGL
+- OpenGLRaw
+- spacepart
+  
+ 
+* Tests 
+** Core
+*** Simple addition
+#+NAME test
+#+BEGIN_SRC haskell :tangle test.hs 
+module Test where
+f x = x + 1
+#+END_SRC
+
+**** Compiled without optimization
+#+BEGIN_SRC sh :results output replace 
+ghc -fforce-recomp -ddump-simpl -dsuppress-module-prefixes \
+  -dsuppress-idinfo -dsuppress-coercions -dsuppress-type-applications \
+  -dsuppress-uniques test.hs
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[1 of 1] Compiling F                ( test.hs, test.o )
+
+==================== Tidy Core ====================
+Result size of Tidy Core = {terms: 10, types: 11, coercions: 0}
+
+f :: forall a_aLb. Num a_aLb => a_aLb -> a_aLb
+f =
+  \ (@ a_aLe) ($dNum_aLf :: Num a_aLe) (x_apw :: a_aLe) ->
+    + $dNum_aLf x_apw (fromInteger $dNum_aLf (__integer 1))
+
+
+
+#+end_example
+
+**** Compiled with optimizations
+#+BEGIN_SRC sh :results output replace 
+ghc -O2 -fforce-recomp -ddump-simpl -dsuppress-module-prefixes \
+  -dsuppress-idinfo -dsuppress-coercions -dsuppress-type-applications \
+  -dsuppress-uniques test.hs
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[1 of 1] Compiling F                ( test.hs, test.o )
+
+==================== Tidy Core ====================
+Result size of Tidy Core = {terms: 12, types: 12, coercions: 0}
+
+f1 :: Integer
+f1 = __integer 1
+
+f :: forall a. Num a => a -> a
+f =
+  \ (@ a) ($dNum :: Num a) (x :: a) ->
+    + $dNum x (fromInteger $dNum f1)
+
+
+
+#+end_example
+
+     
+*** Basic classes
+    
+#+NAME test2
+#+BEGIN_SRC haskell :tangle class.hs
+  {-# LANGUAGE TypeFamilies, DeriveFunctor #-}
+  module TestClass where
+      
+  import Control.Monad.Free
+
+  class World w where
+      type Delta w :: * -> * 
+      applyDelta :: Free (Delta w) a -> w -> w
+          
+  data W = W Int
+  data D n = A n | B n deriving Functor
+
+  instance World W where
+      type Delta W = D
+      applyDelta (Free (A n)) w = 
+        let W x2 = applyDelta n w in W $ x2 + 1
+      applyDelta (Free (B n)) w =
+        let W x2 = applyDelta n w in W $ x2 + 2
+      applyDelta (Pure _) w = w
+
+#+END_SRC
+    
+#+BEGIN_SRC sh :results output replace 
+ghc -fforce-recomp -ddump-simpl -dsuppress-module-prefixes \
+  -dsuppress-idinfo -dsuppress-coercions -dsuppress-type-applications \
+  -dsuppress-uniques -O2 class.hs
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[1 of 1] Compiling TestClass        ( class.hs, class.o )
+
+==================== Tidy Core ====================
+Result size of Tidy Core = {terms: 77, types: 100, coercions: 18}
+
+applyDelta
+  :: forall w. World w => forall a. Free (Delta w) a -> w -> w
+applyDelta = \ (@ w) (tpl :: World w) -> tpl `cast` ...
+
+Rec {
+$fWorldW_$capplyDelta :: forall a. Free (Delta W) a -> W -> W
+$fWorldW_$capplyDelta =
+  \ (@ a) (ds :: Free (Delta W) a) (w :: W) ->
+    case ds of _ {
+      Pure ds1 -> w;
+      Free ds1 ->
+        case ds1 `cast` ... of _ {
+          A n ->
+            W (case $fWorldW_$capplyDelta (n `cast` ...) w of _ { W x2 ->
+               case x2 of _ { I# x -> I# (+# x 1) }
+               });
+          B n ->
+            W (case $fWorldW_$capplyDelta (n `cast` ...) w of _ { W x2 ->
+               case x2 of _ { I# x -> I# (+# x 2) }
+               })
+        }
+    }
+end Rec }
+
+$fWorldW :: World W
+$fWorldW = $fWorldW_$capplyDelta `cast` ...
+
+$fFunctorD_$cfmap :: forall a b. (a -> b) -> D a -> D b
+$fFunctorD_$cfmap =
+  \ (@ a) (@ b) (f :: a -> b) (ds :: D a) ->
+    case ds of _ {
+      A a1 -> A (f a1);
+      B a1 -> B (f a1)
+    }
+
+$fFunctorD_$c<$ :: forall a b. a -> D b -> D a
+$fFunctorD_$c<$ =
+  \ (@ a) (@ b) (eta :: a) (eta1 :: D b) ->
+    case eta1 of _ {
+      A a1 -> A eta;
+      B a1 -> B eta
+    }
+
+$fFunctorD :: Functor D
+$fFunctorD = D:Functor $fFunctorD_$cfmap $fFunctorD_$c<$
+
+
+
+#+end_example
