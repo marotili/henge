@@ -8,6 +8,7 @@ git clone https://github.com/mfpi/imagemagick
 mkdir games
 cd games
 git clone https://github.com/mfpi/boom
+git clone https://github.com/mfpi/thecardgame
 cd boom
 cabal sandbox init
 cabal sandbox add-source ../../OpenGL
