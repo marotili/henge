@@ -159,3 +159,11 @@ $fFunctorD = D:Functor $fFunctorD_$cfmap $fFunctorD_$c<$
 
 
 #+end_example
+
+* Important stuff
+** Sodium
+accum is implemented using snapshot
+snapshot only reads the value of one event ~ behavior
+
+do not send multiple events 
+`mappend` them first
