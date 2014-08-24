@@ -22,6 +22,9 @@ git status -uno -s -b
 cd ../imagemagick
 echo "imagemagick"
 git status -uno -s -b
+cd ../harfbuzz
+echo "harfbuzz"
+git status -uno -s -b
 cd ../games/boom
 echo "Boom"
 git status -uno -s -b

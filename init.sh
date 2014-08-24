@@ -1,4 +1,5 @@
 git clone https://github.com/mfpi/OpenGL
+git clone https://github.com/mfpi/harfbuzz
 git clone https://github.com/mfpi/OpenGLRaw
 git clone https://github.com/mfpi/spacepart
 git clone https://github.com/mfpi/freetype2
@@ -12,6 +13,7 @@ git clone https://github.com/mfpi/thecardgame
 cd boom
 cabal sandbox init
 cabal sandbox add-source ../../OpenGL
+cabal sandbox add-source ../../harfbuzz
 cabal sandbox add-source ../../OpenGLRaw
 cabal sandbox add-source ../../spacepart
 cabal sandbox add-source ../../imagemagick

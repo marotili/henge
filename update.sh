@@ -11,6 +11,8 @@ cd ../halo
 git pull origin master
 cd ../hsys
 git pull origin master
+cd ../harfbuzz
+git pull origin master
 cd ../imagemagick
 git pull mfpi master
 cd ../games/boom
